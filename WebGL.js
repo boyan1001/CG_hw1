@@ -34,9 +34,9 @@ var v_vertiLines = [];
 var v_triangles = [];
 var v_squares = [];
 var v_circles = [];
-var triangle_size = 40;
-var square_size = 40;
-var circle_radius = 50;
+var triangle_side = 30;
+var square_side = 40;
+var circle_radius = 30;
 //var ... of course you may need more variables
 
 function main(){
@@ -252,7 +252,7 @@ function draw(){ //you may want to define more arguments for this function
         let colorBuffer = gl.createBuffer();
         let vertices = new Float32Array(v_triangles.length * 6);
         let colors = new Float32Array(v_triangles.length * 12);
-        let d = traingle_side / (canvas.height/2.0);
+        let d = triangle_side / (canvas.height/2.0);
         
 
         for(let i = 0;i < v_triangles.length; i++){
@@ -286,7 +286,102 @@ function draw(){ //you may want to define more arguments for this function
         gl.enableVertexAttribArray(a_Color);
 
         gl.drawArrays(gl.TRIANGLES, 0, v_triangles.length * 3);
-    } 
+    }
+
+    // draw squares
+    if(v_squares.length != 0){
+        let vertexBuffer = gl.createBuffer();
+        let colorBuffer = gl.createBuffer();
+        let vertices = new Float32Array(v_squares.length * 12);
+        let colors = new Float32Array(v_squares.length * 24);
+        let d = square_side / (canvas.height/2.0);
+
+        for(let i = 0;i < v_squares.length;i++){
+            let x = v_squares[i][0];
+            let y = v_squares[i][1];
+
+            // square vertex
+            vertices[i*12] = x - d / 2.0;
+            vertices[i*12+1] = y + d / 2.0;
+            vertices[i*12+2] = x - d / 2.0;
+            vertices[i*12+3] = y - d / 2.0;
+            vertices[i*12+4] = x + d / 2.0;
+            vertices[i*12+5] = y + d / 2.0;
+
+            vertices[i*12+6] = x + d / 2.0;
+            vertices[i*12+7] = y + d / 2.0;
+            vertices[i*12+8] = x - d / 2.0;
+            vertices[i*12+9] = y - d / 2.0;
+            vertices[i*12+10] = x + d / 2.0;
+            vertices[i*12+11] = y - d / 2.0;
+
+            for(let j = 0;j < 6;j++){
+                colors[i*24+4*j] = v_squares[i][2] == 'r' ? 1.0 : 0.0;
+                colors[i*24+1+4*j] = v_squares[i][2] == 'g' ? 1.0 : 0.0;
+                colors[i*24+2+4*j] = v_squares[i][2] == 'b' ? 1.0 : 0.0;
+                colors[i*24+3+4*j] = 1.0;
+            }
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(a_Position);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(a_Color, 4, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(a_Color);
+
+        gl.drawArrays(gl.TRIANGLES, 0, v_squares.length * 6);
+    }
+
+    // draw circles
+    if(v_circles.length != 0){
+        let vertexBuffer = gl.createBuffer();
+        let colorBuffer = gl.createBuffer();
+    
+        let vertices = new Float32Array(v_circles.length * 1000 * 3 * 2);
+        let colors = new Float32Array(v_circles.length * 1000 * 3 * 4);
+    
+        let r = circle_radius / (canvas.height / 2.0);
+    
+        for(let i = 0; i < v_circles.length; i++){
+            let x = v_circles[i][0];
+            let y = v_circles[i][1];
+            let colorChar = v_circles[i][2];
+    
+            for(let j = 0; j < 1000; j++){
+                let idx = i * 6000 + j * 6;
+                vertices[idx]     = x + r * Math.cos(2 * Math.PI * j / 1000);
+                vertices[idx + 1] = y + r * Math.sin(2 * Math.PI * j / 1000);
+                vertices[idx + 2] = x;
+                vertices[idx + 3] = y;
+                vertices[idx + 4] = x + r * Math.cos(2 * Math.PI * (j+1) / 1000);
+                vertices[idx + 5] = y + r * Math.sin(2 * Math.PI * (j+1) / 1000);
+
+                for(let k = 0; k < 3; k++){
+                    let cidx = i * 12000 + j * 12 + k * 4;
+                    colors[cidx]     = colorChar == 'r' ? 1.0 : 0.0;
+                    colors[cidx + 1] = colorChar == 'g' ? 1.0 : 0.0;
+                    colors[cidx + 2] = colorChar == 'b' ? 1.0 : 0.0;
+                    colors[cidx + 3] = 1.0;
+                }
+            }
+        }
+    
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(a_Position);
+    
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(a_Color, 4, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(a_Color);
+    
+        gl.drawArrays(gl.TRIANGLES, 0, v_circles.length * 1000 * 3);
+    }
 }
 
 function initShaders(gl, vshaderSource, fshaderSource) {
@@ -312,4 +407,3 @@ function initShaders(gl, vshaderSource, fshaderSource) {
     gl.program = program;
     return true;
 }
-
